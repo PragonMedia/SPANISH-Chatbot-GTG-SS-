@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Benefits Finder</title>
+    <title>Daily Savers</title>
     <link rel="icon" href="./images/new-logo.png" type="image/png" />
     <link rel="shortcut icon" href="./images/new-logo.png" type="image/png" />
 
@@ -24,7 +24,7 @@
         j.async = true;
         j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
         f.parentNode.insertBefore(j, f);
-      })(window, document, "script", "dataLayer", "GTM-MC55FSL5");
+      })(window, document, "script", "dataLayer", "GTM-P2TD9XKZ");
     </script>
     <!-- End Google Tag Manager -->
 
@@ -184,6 +184,47 @@
         overflow-x: hidden !important;
         overflow-y: hidden !important;
       }
+
+      /* Non-dismissible modal styles */
+      #disqualification-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.75);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #disqualification-modal.show {
+        display: flex;
+      }
+
+      .modal-content {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      }
+
+      .modal-content h2 {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #dc2626;
+        margin-bottom: 1rem;
+      }
+
+      .modal-content p {
+        font-size: 1rem;
+        color: #374151;
+        margin: 0;
+      }
     </style>
   </head>
 
@@ -191,7 +232,7 @@
     <!-- Google Tag Manager (noscript) -->
     <noscript
       ><iframe
-        src="https://www.googletagmanager.com/ns.html?id=GTM-MC55FSL5"
+        src="https://www.googletagmanager.com/ns.html?id=GTM-P2TD9XKZ"
         height="0"
         width="0"
         style="display: none; visibility: hidden"
@@ -236,12 +277,19 @@
             </div>
           </div>
           <div style="margin-bottom: 10px">
-            <h2
+            <!-- <h2
               class="font-bold text-xl sm:text-3xl mt-1"
               style="color: rgb(75 85 99)"
             >
               Ending Soon: 2025 Medicare Giveback Benefit Can Provide Extra
               Social Security Money Every Month.
+            </h2> -->
+            <h2
+              class="font-bold text-xl sm:text-3xl mt-1"
+              style="color: rgb(75 85 99)"
+            >
+              Últimos días: El Beneficio de Reembolso de Medicare 2025 puede
+              brindarle dinero adicional del Seguro Social cada mes.
             </h2>
           </div>
           <div class="w-full md:col-span-1 text-center block">
@@ -254,7 +302,7 @@
                   class="relative inline-flex rounded-full h-4 w-4 bg-green-500"
                 ></span>
               </span>
-              Emily is Online.
+              Emily está en línea.
             </div>
           </div>
         </div>
@@ -288,15 +336,15 @@
                     id="msg1"
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
-                    <p class="text-md text-gray-800">Hi, I'm Emily! 👋</p>
+                    <p class="text-md text-gray-800">¡Hola, soy Emily! 👋</p>
                   </div>
                   <div
                     id="msg3"
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      Want to find out if you qualify for the part B Social
-                      Security giveback?
+                      ¿Quiere saber si califica para el reembolso del Seguro
+                      Social de la Parte B?
                     </p>
                   </div>
                   <div
@@ -310,7 +358,7 @@
                         data-form-step="0"
                         data-form-value="Yes"
                       >
-                        Yes
+                        Sí
                       </button>
                     </div>
                   </div>
@@ -326,7 +374,7 @@
                     id="msg5"
                     class="bg-blue-500 text-white p-3 rounded-lg shadow-xs mt-2 inline-block"
                   >
-                    <p class="text-md">Yes</p>
+                    <p class="text-md">Sí</p>
                   </div>
                 </div>
                 <div class="flex-shrink-0">
@@ -353,7 +401,7 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      Okay, let me ask you two quick questions.
+                      Bien, permítame hacerle dos preguntas rápidas.
                     </p>
                   </div>
 
@@ -361,7 +409,7 @@
                     id="msg_q2_2"
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
-                    <p class="text-md text-gray-800">What is your age?</p>
+                    <p class="text-md text-gray-800">¿Cuál es su edad?</p>
                   </div>
 
                   <div
@@ -370,12 +418,12 @@
                   >
                     <div class="grid" style="gap: 10px">
                       <button
-                        class="chat-button text-white font-bold bg-blue-500 rounded-full py-3 px-12"
+                        class="chat-button text-white font-bold bg-blue-500 rounded-full py-3 px-6"
                         type="button"
                         data-form-step="2"
                         data-form-value="below 65"
                       >
-                        Under 65
+                        Menos de 65 años
                       </button>
                       <button
                         class="chat-button text-white font-bold bg-blue-500 rounded-full py-3 px-12"
@@ -399,7 +447,7 @@
                         data-form-step="2"
                         data-form-value="76 and older"
                       >
-                        Over 75
+                        Más de 75
                       </button>
                     </div>
                   </div>
@@ -414,10 +462,12 @@
                   <div
                     class="bg-blue-500 text-white p-3 rounded-lg shadow-xs mt-2 inline-block"
                   >
-                    <p id="msg_under_q2" class="text-md hidden">Under 65</p>
+                    <p id="msg_under_q2" class="text-md hidden">
+                      Menos de 65 años
+                    </p>
                     <p id="msg_over_q2" class="text-md hidden">65 - 70</p>
                     <p id="msg_over71_q2" class="text-md hidden">71-75</p>
-                    <p id="msg_76older_q2" class="text-md hidden">Over 75</p>
+                    <p id="msg_76older_q2" class="text-md hidden">Más de 75</p>
                   </div>
                 </div>
                 <div class="flex-shrink-0">
@@ -444,7 +494,7 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      Are you on Medicare Part A and Part B?
+                      ¿Está inscrito en Medicare Parte A y Parte B?
                     </p>
                   </div>
 
@@ -465,7 +515,7 @@
                         data-form-step="3"
                         data-form-value="Yes"
                       >
-                        Yes
+                        Sí
                       </button>
                       <button
                         class="chat-button text-white font-bold bg-blue-500 rounded-full py-3 px-12"
@@ -488,7 +538,7 @@
                   <div
                     class="bg-blue-500 text-white p-3 rounded-lg shadow-xs mt-2 inline-block"
                   >
-                    <p id="msg_yes_q3" class="text-md hidden">Yes</p>
+                    <p id="msg_yes_q3" class="text-md hidden">Sí</p>
                     <p id="msg_no_q3" class="text-md hidden">No</p>
                   </div>
                 </div>
@@ -591,7 +641,7 @@
                     id="msg13"
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
-                    <p class="text-md text-gray-800">🎉 Congratulations! 🎁</p>
+                    <p class="text-md text-gray-800">🎉 ¡Felicidades! 🎁</p>
                   </div>
 
                   <div
@@ -599,7 +649,7 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      You're pre-qualified for the Giveback Benefit!
+                      ¡Usted está precalificado para el Beneficio de Reembolso!
                     </p>
                   </div>
                   <div
@@ -607,9 +657,10 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      Tap the number below to call now to get your Social
-                      Security Giveback Benefit! It only takes 2 minutes. Make
-                      sure to mention the Part B giveback.
+                      Toque el número de abajo para llamar ahora y obtener su
+                      Beneficio de Reembolso del Seguro Social. ¡Solo toma 2
+                      minutos! Asegúrese de mencionar al agente que está
+                      llamando por el beneficio de reembolso de la Parte B.
                     </p>
                   </div>
                   <div
@@ -617,8 +668,8 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      Tap the button below to call now to get your Part B
-                      Giveback! It only takes 2 minutes.
+                      Tap the button below to get your Part B Giveback! It only
+                      takes 2 minutes.
                     </p>
                   </div>
 
@@ -649,7 +700,7 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      Sorry, it seems like you don't qualify for this offer
+                      Lo sentimos, parece que no califica para esta oferta.
                     </p>
                   </div>
                   <div
@@ -796,26 +847,34 @@
       </div>
     </main>
 
+    <!-- Non-dismissible Disqualification Modal -->
+    <div id="disqualification-modal">
+      <div class="modal-content">
+        <h2>Lo sentimos, parece que no califica para esta oferta.</h2>
+      </div>
+    </div>
+
     <footer class="bg-gray-100 border-t border-t-1 border-t-gray-200 mt-8">
       <div
         class="mx-auto max-w-7xl overflow-hidden px-6 py-8 lg:px-8 text-sm sm:text-md leading-5 sm:leading-6 text-gray-500"
       >
         <p style="text-align: center">
-          This site is not a part of the Google website or Google LLC.
-          Additionally, this site is NOT endorsed by Google in any way. ‘Google’
-          is a trademark of Google LLC.
+          Este sitio no forma parte del sitio web de Google ni de Google LLC.
+          Además, este sitio NO está respaldado por Google de ninguna manera.
+          “Google” es una marca comercial de Google LLC.
         </p>
         <p style="text-align: center; margin-top: 15px">
-          *This website is not affiliated with or endorsed by any government
-          agency. Our mission is to help you make confident, informed choices
-          about your Medicare Advantage plan options. We are an independent
-          educational resource and are not a government agency, nor are we
-          affiliated with or endorsed by the U.S. government or the federal
-          Medicare program. We do not issue or facilitate official government
-          documents or services. Instead, we connect you with licensed insurance
-          agents who can review plan options available in your area. For
-          official Medicare information, please visit the Centers for Medicare &
-          Medicaid Services (CMS).
+          Este sitio web no está afiliado ni respaldado por ninguna agencia
+          gubernamental. Nuestra misión es ayudarle a tomar decisiones
+          informadas y con confianza sobre sus opciones de planes Medicare
+          Advantage. Somos un recurso educativo independiente y no somos una
+          agencia gubernamental, ni estamos afiliados ni respaldados por el
+          gobierno de los Estados Unidos ni por el programa federal de Medicare.
+          No emitimos ni facilitamos documentos o servicios oficiales del
+          gobierno. En su lugar, lo conectamos con agentes de seguros con
+          licencia que pueden revisar las opciones de planes disponibles en su
+          área. Para información oficial sobre Medicare, visite los Centros de
+          Servicios de Medicare y Medicaid (CMS).
         </p>
         <div
           class="mx-auto max-w-7xl overflow-hidden px-6 lg:px-8 text-sm sm:text-md leading-5 sm:leading-6 text-gray-500"
@@ -826,12 +885,12 @@
             padding: 15px;
           "
         >
-          <p>@2025. All rights Reserved.</p>
+          <p>2025. Todos los derechos reservados.</p>
           <p class="text-center text-blue-400">
             <span>
-              <a href="/privacy" target="_blank">Privacy Policy</a> |
-              <a href="/terms" target="_blank">Terms &amp; Conditions</a> |
-              <a href="/contact" target="_blank">Contact Us</a>
+              <a href="/privacy" target="_blank">Política de Privacidad</a> |
+              <a href="/terms" target="_blank">Términos &amp; Condiciones</a> |
+              <a href="/contact" target="_blank">Contáctenos</a>
             </span>
           </p>
         </div>

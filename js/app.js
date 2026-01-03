@@ -385,25 +385,16 @@ $("button.chat-button").on("click", function () {
       newUrl.searchParams.delete("qualified");
       newUrl.searchParams.set("qualified", "no");
 
-      // Build CLAIM NOW button URL with clickID and mb parameters
-      const clickID =
-        localStorage.getItem("rt_clickid") ||
-        newUrl.searchParams.get("clickid") ||
-        "";
-      const mbParam = newUrl.searchParams.get("mb") || "";
-      // Only set iframe URL if gtg is not "1" (will be shown later based on gtg value)
-      const gtgValue = localStorage.getItem("gtg");
-      if (gtgValue !== "1") {
-        const claimNowIframeUrl = `https://policyfinds.com/sq1/claim-button.html?clickid=${encodeURIComponent(
-          clickID
-        )}&mb=${encodeURIComponent(mbParam)}`;
-
-        // Set the src for the claim now iframe
-        const claimNowIframe = document.getElementById("claim-now-iframe");
-        if (claimNowIframe) {
-          claimNowIframe.src = claimNowIframeUrl;
-        }
-      }
+      // Show disqualification modal - non-dismissible
+      setTimeout(function () {
+        $("#disqualification-modal").addClass("show");
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = "hidden";
+      }, speed);
+      
+      // Don't continue with the rest of the flow
+      window.history.replaceState({}, "", newUrl);
+      return;
     }
 
     // Load Ringba and call addRingbaTags after qualification
@@ -423,62 +414,27 @@ $("button.chat-button").on("click", function () {
           $(".temp-typing").remove();
           $("#msg14").removeClass("hidden").after(typingEffect());
           scrollToBottom();
-          setTimeout(function () {
-            $(".temp-typing").remove();
-            // Show different message based on Yes/No answer
-            if (buttonValue == "Yes") {
-              $("#msg15").removeClass("hidden").after(typingEffect());
-            } else if (buttonValue == "No") {
-              $("#msg15_no").removeClass("hidden").after(typingEffect());
-            }
-            scrollToBottom();
             setTimeout(function () {
               $(".temp-typing").remove();
-              // Show phone button for "Yes", CLAIM NOW button for "No"
+              // Only show messages if user answered "Yes"
               if (buttonValue == "Yes") {
-                $("#msg17").before(typingEffect());
+                $("#msg15").removeClass("hidden").after(typingEffect());
                 scrollToBottom();
                 setTimeout(function () {
                   $(".temp-typing").remove();
-                  $("#msg17").removeClass("hidden");
+                  // Show phone button for "Yes"
+                  $("#msg17").before(typingEffect());
                   scrollToBottom();
-                  startCountdown();
-                }, 500);
-              } else if (buttonValue == "No") {
-                // Get gtg value from localStorage
-                const gtgValue = localStorage.getItem("gtg");
-
-                // If gtg is "1", show contact page button
-                // If gtg is "0" or null/undefined, show iframe button
-                if (gtgValue === "1") {
-                  // Show contact page button
-                  $("#msg19-contact").removeClass("hidden");
-                } else {
-                  // Show iframe button (gtg is "0" or null/undefined)
-                  const currentUrl = new URL(window.location.href);
-                  const clickID =
-                    localStorage.getItem("rt_clickid") ||
-                    currentUrl.searchParams.get("clickid") ||
-                    "";
-                  const mbParam = currentUrl.searchParams.get("mb") || "";
-                  const claimNowIframeUrl = `https://policyfinds.com/sq1/claim-button.html?clickid=${encodeURIComponent(
-                    clickID
-                  )}&mb=${encodeURIComponent(mbParam)}`;
-
-                  // Set the src for the claim now iframe
-                  const claimNowIframe =
-                    document.getElementById("claim-now-iframe");
-                  if (claimNowIframe) {
-                    claimNowIframe.src = claimNowIframeUrl;
-                  }
-                  // Show the claim now container (inside chat bubble)
-                  $("#msg19").removeClass("hidden");
-                }
-                startCountdown();
+                  setTimeout(function () {
+                    $(".temp-typing").remove();
+                    $("#msg17").removeClass("hidden");
+                    scrollToBottom();
+                    startCountdown();
+                  }, 500);
+                }, speed);
               }
-              scrollToBottom();
+              // If "No", modal is already shown and flow is stopped
             }, speed);
-          }, speed);
         }, speed);
       }, speed);
     }, speed);
@@ -711,3 +667,30 @@ if (document.readyState === "loading") {
     });
   }
 }
+
+// Prevent modal from being closed - make it non-dismissible
+$(document).ready(function() {
+  // Prevent clicks on modal overlay from closing it
+  $("#disqualification-modal").on("click", function(e) {
+    e.stopPropagation();
+    // Only allow clicks on the modal content itself, not the overlay
+    if (e.target === this) {
+      e.preventDefault();
+      return false;
+    }
+  });
+
+  // Prevent ESC key from closing modal
+  $(document).on("keydown", function(e) {
+    if (e.key === "Escape" && $("#disqualification-modal").hasClass("show")) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  });
+
+  // Prevent any other attempts to close the modal
+  $("#disqualification-modal .modal-content").on("click", function(e) {
+    e.stopPropagation();
+  });
+});
