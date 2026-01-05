@@ -1,3 +1,25 @@
+// Helper function to preserve all original URL parameters when modifying URL
+// This ensures tracking parameters (bbg_*, mb, account, angle, key, channel, etc.) are never lost
+function preserveUrlParams(url) {
+  // Restore original parameters from sessionStorage
+  const storedParams = sessionStorage.getItem("original_url_params");
+  if (storedParams) {
+    try {
+      const originalParams = JSON.parse(storedParams);
+      // Add all original parameters that aren't already in the URL
+      // This preserves tracking parameters that might have been lost
+      for (const [k, v] of Object.entries(originalParams)) {
+        if (!url.searchParams.has(k) && v != null && v !== "") {
+          url.searchParams.set(k, v);
+        }
+      }
+    } catch (e) {
+      console.error("Error preserving original params:", e);
+    }
+  }
+  return url;
+}
+
 // Function to extract domain and route from current URL
 function getDomainAndRoute() {
   const url = new URL(window.location.href);
@@ -53,34 +75,22 @@ let ringbaID = "CAd4c016a37829477688c3482fb6fd01de"; // Fallback default
   // Use the function to get domain and route from URL
   const { domain, route } = getDomainAndRoute();
 
-  console.log(
-    "TESTING - Fetching route data for domain:",
-    domain,
-    "route:",
-    route
-  );
-
   if (domain && route) {
     const apiData = await fetchRouteData(domain, route);
-    if (
-      apiData &&
-      apiData.success &&
-      apiData.routeData &&
-      apiData.routeData.ringbaID
-    ) {
-      ringbaID = apiData.routeData.ringbaID;
-      console.log("TESTING - RingbaID loaded from API:", ringbaID);
-    } else {
-      console.log("TESTING - Using fallback RingbaID:", ringbaID);
-    }
 
-    // Log all IDs for testing
     if (apiData && apiData.success && apiData.routeData) {
-      console.log("TESTING - API Response Data:");
-      console.log("  - ringbaID:", apiData.routeData.ringbaID);
-      console.log("  - phoneNumber:", apiData.routeData.phoneNumber);
-      console.log("  - rtkID:", apiData.routeData.rtkID);
+      // Log values from API
+      if (apiData.routeData.ringbaID) {
+        ringbaID = apiData.routeData.ringbaID;
+        console.log("ringbaID from API:", ringbaID);
+      } else {
+        console.log("ringbaID from fallback:", ringbaID);
+      }
+    } else {
+      console.log("ringbaID from fallback:", ringbaID);
     }
+  } else {
+    console.log("ringbaID from fallback:", ringbaID);
   }
 })();
 
@@ -184,6 +194,8 @@ let speed = 500;
 
 function updateAgeGroup(ageGroup) {
   let url = new URL(window.location.href);
+  // Preserve all original parameters first
+  url = preserveUrlParams(url);
   url.searchParams.delete("u65consumer");
   url.searchParams.delete("o65consumer");
   if (ageGroup === "under65") {
@@ -250,6 +262,8 @@ $("button.chat-button").on("click", function () {
     $("#userBlock_q2").removeClass("hidden");
 
     var newUrl = new URL(window.location.href); // Define the URL once
+    // Preserve all original parameters first
+    newUrl = preserveUrlParams(newUrl);
 
     if (buttonValue == "below 65") {
       $("#msg_under_q2").removeClass("hidden");
@@ -373,6 +387,8 @@ $("button.chat-button").on("click", function () {
     $("#userBlock_q3").removeClass("hidden");
 
     var newUrl = new URL(window.location.href); // Define the URL once
+    // Preserve all original parameters first
+    newUrl = preserveUrlParams(newUrl);
 
     if (buttonValue == "Yes") {
       $("#msg_yes_q3").removeClass("hidden");
@@ -385,16 +401,25 @@ $("button.chat-button").on("click", function () {
       newUrl.searchParams.delete("qualified");
       newUrl.searchParams.set("qualified", "no");
 
-      // Show disqualification modal - non-dismissible
-      setTimeout(function () {
-        $("#disqualification-modal").addClass("show");
-        // Prevent body scroll when modal is open
-        document.body.style.overflow = "hidden";
-      }, speed);
-      
-      // Don't continue with the rest of the flow
-      window.history.replaceState({}, "", newUrl);
-      return;
+      // Build CLAIM NOW button URL with clickID and mb parameters
+      const clickID =
+        localStorage.getItem("rt_clickid") ||
+        newUrl.searchParams.get("clickid") ||
+        "";
+      const mbParam = newUrl.searchParams.get("mb") || "";
+      // Only set iframe URL if gtg is not "1" (will be shown later based on gtg value)
+      const gtgValue = localStorage.getItem("gtg");
+      if (gtgValue !== "1") {
+        const claimNowIframeUrl = `https://policyfinds.com/sq1/claim-button.html?clickid=${encodeURIComponent(
+          clickID
+        )}&mb=${encodeURIComponent(mbParam)}`;
+
+        // Set the src for the claim now iframe
+        const claimNowIframe = document.getElementById("claim-now-iframe");
+        if (claimNowIframe) {
+          claimNowIframe.src = claimNowIframeUrl;
+        }
+      }
     }
 
     // Load Ringba and call addRingbaTags after qualification
@@ -414,27 +439,64 @@ $("button.chat-button").on("click", function () {
           $(".temp-typing").remove();
           $("#msg14").removeClass("hidden").after(typingEffect());
           scrollToBottom();
+          setTimeout(function () {
+            $(".temp-typing").remove();
+            // Show different message based on Yes/No answer
+            if (buttonValue == "Yes") {
+              $("#msg15").removeClass("hidden").after(typingEffect());
+            } else if (buttonValue == "No") {
+              $("#msg15_no").removeClass("hidden").after(typingEffect());
+            }
+            scrollToBottom();
             setTimeout(function () {
               $(".temp-typing").remove();
-              // Only show messages if user answered "Yes"
+              // Show phone button for "Yes", CLAIM NOW button for "No"
               if (buttonValue == "Yes") {
-                $("#msg15").removeClass("hidden").after(typingEffect());
+                $("#msg17").before(typingEffect());
                 scrollToBottom();
                 setTimeout(function () {
                   $(".temp-typing").remove();
-                  // Show phone button for "Yes"
-                  $("#msg17").before(typingEffect());
+                  $("#msg17").removeClass("hidden");
                   scrollToBottom();
-                  setTimeout(function () {
-                    $(".temp-typing").remove();
-                    $("#msg17").removeClass("hidden");
-                    scrollToBottom();
-                    startCountdown();
-                  }, 500);
-                }, speed);
+                  startCountdown();
+                }, 500);
+              } else if (buttonValue == "No") {
+                // Get gtg value from localStorage
+                const gtgValue = localStorage.getItem("gtg");
+
+                // If gtg is "1", show contact page button
+                // If gtg is "0" or null/undefined, show iframe button
+                if (gtgValue === "1") {
+                  // Show contact page button
+                  $("#msg19-contact").removeClass("hidden");
+                } else {
+                  // Show iframe button (gtg is "0" or null/undefined)
+                  const currentUrl = new URL(window.location.href);
+                  // Preserve all original parameters
+                  preserveUrlParams(currentUrl);
+                  const clickID =
+                    localStorage.getItem("rt_clickid") ||
+                    currentUrl.searchParams.get("clickid") ||
+                    "";
+                  const mbParam = currentUrl.searchParams.get("mb") || "";
+                  const claimNowIframeUrl = `https://policyfinds.com/sq1/claim-button.html?clickid=${encodeURIComponent(
+                    clickID
+                  )}&mb=${encodeURIComponent(mbParam)}`;
+
+                  // Set the src for the claim now iframe
+                  const claimNowIframe =
+                    document.getElementById("claim-now-iframe");
+                  if (claimNowIframe) {
+                    claimNowIframe.src = claimNowIframeUrl;
+                  }
+                  // Show the claim now container (inside chat bubble)
+                  $("#msg19").removeClass("hidden");
+                }
+                startCountdown();
               }
-              // If "No", modal is already shown and flow is stopped
+              scrollToBottom();
             }, speed);
+          }, speed);
         }, speed);
       }, speed);
     }, speed);
@@ -667,30 +729,3 @@ if (document.readyState === "loading") {
     });
   }
 }
-
-// Prevent modal from being closed - make it non-dismissible
-$(document).ready(function() {
-  // Prevent clicks on modal overlay from closing it
-  $("#disqualification-modal").on("click", function(e) {
-    e.stopPropagation();
-    // Only allow clicks on the modal content itself, not the overlay
-    if (e.target === this) {
-      e.preventDefault();
-      return false;
-    }
-  });
-
-  // Prevent ESC key from closing modal
-  $(document).on("keydown", function(e) {
-    if (e.key === "Escape" && $("#disqualification-modal").hasClass("show")) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-  });
-
-  // Prevent any other attempts to close the modal
-  $("#disqualification-modal .modal-content").on("click", function(e) {
-    e.stopPropagation();
-  });
-});
