@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en_US">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ahorros Diarios</title>
+    <title>Ahorradores Diarios</title>
     <link rel="icon" href="./images/new-logo.png" type="image/png" />
     <link rel="shortcut icon" href="./images/new-logo.png" type="image/png" />
 
@@ -14,7 +14,7 @@
       src="https://www.googletagmanager.com/gtag/js?id=AW-16921817895"
     ></script>
 
-  <script>
+    <script>
       (function (w, d, s, l, i) {
         w[l] = w[l] || [];
         w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
@@ -28,15 +28,76 @@
     </script>
     <!-- End Google Tag Manager -->
 
+    <!-- CRITICAL: Capture ALL original URL parameters IMMEDIATELY on page load -->
+    <!-- This must run before any other scripts to preserve tracking parameters -->
+    <script>
+      (function () {
+        try {
+          const originalUrl = new URL(window.location.href);
+          const originalParams = {};
+          originalUrl.searchParams.forEach((value, key) => {
+            originalParams[key] = value;
+          });
+          // ALWAYS store, even if empty (to track that we've captured)
+          sessionStorage.setItem(
+            "original_url_params",
+            JSON.stringify(originalParams)
+          );
+
+          if (Object.keys(originalParams).length > 0) {
+            console.log("Original URL parameters captured:", originalParams);
+          } else {
+            console.log("No URL parameters found on initial load");
+          }
+        } catch (e) {
+          console.error("Error capturing original URL parameters:", e);
+        }
+      })();
+    </script>
+
     <script>
       (async () => {
-        // helpers
+        // helpers - Preserve ALL original parameters when updating URL
         function pushParams(params) {
-          const u = new URL(location.href);
+          // CRITICAL: Build URL from scratch using original parameters
+          // This ensures tracking parameters are NEVER lost, even if URL was already modified
+          const storedParams = sessionStorage.getItem("original_url_params");
+          let u;
+
+          if (storedParams) {
+            try {
+              const originalParams = JSON.parse(storedParams);
+              // Start with a fresh URL using only origin + pathname (no query params)
+              // This ensures we rebuild from the original stored params, not current URL
+              u = new URL(window.location.origin + window.location.pathname);
+
+              // FORCE restore ALL original parameters first (except ones being updated)
+              // This ensures bbg_*, mb, account, angle, key, channel, etc. are always preserved
+              for (const [k, v] of Object.entries(originalParams)) {
+                // Only restore if not being updated in this call
+                if (!params.hasOwnProperty(k) && v != null && v !== "") {
+                  u.searchParams.set(k, v);
+                }
+              }
+            } catch (e) {
+              console.error("Error restoring original params:", e);
+              u = new URL(location.href);
+            }
+          } else {
+            // Fallback: use current URL if no stored params
+            u = new URL(location.href);
+          }
+
+          // Then apply new/updated parameters (these take precedence over originals)
           for (const [k, v] of Object.entries(params)) {
             if (v != null && v !== "") u.searchParams.set(k, v);
           }
-          history.replaceState({}, "", u.toString());
+
+          // Only update URL if it actually changed to avoid unnecessary history entries
+          const newUrl = u.toString();
+          if (newUrl !== location.href) {
+            history.replaceState({}, "", newUrl);
+          }
         }
 
         // fire clickid request
@@ -52,20 +113,15 @@
         const updates = {};
 
         // clickid
-        console.log("ClickID Response:", clickRes);
-
-        // TESTING - Log rtkID if available
+        // Log rtkID from API response
         if (clickRes && clickRes.debug && clickRes.debug.rtkID) {
-          console.log("TESTING - rtkID loaded from API:", clickRes.debug.rtkID);
-          console.log("TESTING - Debug info from clickid.php:", clickRes.debug);
+          console.log("rtkID from API:", clickRes.debug.rtkID);
         }
 
         if (clickRes && clickRes.ok && clickRes.clickid) {
           localStorage.setItem("rt_clickid", clickRes.clickid);
           updates.clickid = clickRes.clickid;
-          console.log("ClickID added to URL:", clickRes.clickid);
         } else {
-          console.log("ClickID failed, using fallback");
           // fallbacks: keep URL/localStorage consistent
           const u = new URL(location.href);
           const fromUrl = u.searchParams.get("clickid");
@@ -97,10 +153,8 @@
               // Remove gtg from localStorage if it's null (legitimate traffic)
               localStorage.removeItem("gtg");
             }
-            console.log("GTG Response:", gtgRes);
-            console.log("GTG set to:", gtgRes.gtg);
+            // GTG analysis complete
           } else {
-            console.log("GTG failed, not setting localStorage");
           }
         } catch (error) {
           console.error("GTG fetch error:", error);
@@ -193,36 +247,46 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.75);
-        z-index: 9999;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 99999;
         align-items: center;
         justify-content: center;
+        pointer-events: auto;
       }
 
       #disqualification-modal.show {
         display: flex;
       }
 
+      body.modal-open {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+      }
+
       .modal-content {
         background-color: white;
-        padding: 2rem;
-        border-radius: 0.5rem;
-        max-width: 400px;
+        padding: 40px;
+        border-radius: 12px;
+        max-width: 500px;
         width: 90%;
         text-align: center;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        pointer-events: auto;
+        position: relative;
       }
 
       .modal-content h2 {
-        font-size: 1.5rem;
+        font-size: 24px;
         font-weight: bold;
-        color: #dc2626;
-        margin-bottom: 1rem;
+        color: #1f2937;
+        margin-bottom: 20px;
       }
 
       .modal-content p {
-        font-size: 1rem;
-        color: #374151;
+        font-size: 18px;
+        color: #4b5563;
         margin: 0;
       }
     </style>
@@ -277,19 +341,12 @@
             </div>
           </div>
           <div style="margin-bottom: 10px">
-            <!-- <h2
-              class="font-bold text-xl sm:text-3xl mt-1"
-              style="color: rgb(75 85 99)"
-            >
-              Ending Soon: 2025 Medicare Giveback Benefit Can Provide Extra
-              Social Security Money Every Month.
-            </h2> -->
             <h2
               class="font-bold text-xl sm:text-3xl mt-1"
               style="color: rgb(75 85 99)"
             >
-              Últimos días: El Beneficio de Reembolso de Medicare 2026 puede
-              brindarle dinero adicional del Seguro Social cada mes.
+              Terminando Pronto: El Beneficio de Reembolso de Medicare 2026
+              Puede Proporcionar Dinero Extra del Seguro Social Cada Mes.
             </h2>
           </div>
           <div class="w-full md:col-span-1 text-center block">
@@ -343,8 +400,8 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      ¿Quiere saber si califica para el reembolso del Seguro
-                      Social de la Parte B?
+                      ¿Quieres saber si calificas para el reembolso del Seguro
+                      Social Parte B?
                     </p>
                   </div>
                   <div
@@ -401,7 +458,7 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      Bien, permítame hacerle dos preguntas rápidas.
+                      Bien, déjame hacerte dos preguntas rápidas.
                     </p>
                   </div>
 
@@ -409,7 +466,7 @@
                     id="msg_q2_2"
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
-                    <p class="text-md text-gray-800">¿Cuál es su edad?</p>
+                    <p class="text-md text-gray-800">¿Cuál es tu edad?</p>
                   </div>
 
                   <div
@@ -418,12 +475,12 @@
                   >
                     <div class="grid" style="gap: 10px">
                       <button
-                        class="chat-button text-white font-bold bg-blue-500 rounded-full py-3 px-6"
+                        class="chat-button text-white font-bold bg-blue-500 rounded-full py-3 px-12"
                         type="button"
                         data-form-step="2"
                         data-form-value="below 65"
                       >
-                        Menos de 65 años
+                        Menos de 65
                       </button>
                       <button
                         class="chat-button text-white font-bold bg-blue-500 rounded-full py-3 px-12"
@@ -462,9 +519,7 @@
                   <div
                     class="bg-blue-500 text-white p-3 rounded-lg shadow-xs mt-2 inline-block"
                   >
-                    <p id="msg_under_q2" class="text-md hidden">
-                      Menos de 65 años
-                    </p>
+                    <p id="msg_under_q2" class="text-md hidden">Menos de 65</p>
                     <p id="msg_over_q2" class="text-md hidden">65 - 70</p>
                     <p id="msg_over71_q2" class="text-md hidden">71-75</p>
                     <p id="msg_76older_q2" class="text-md hidden">Más de 75</p>
@@ -494,7 +549,7 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      ¿Está inscrito en Medicare Parte A y Parte B?
+                      ¿Estás en Medicare Parte A y Parte B?
                     </p>
                   </div>
 
@@ -569,8 +624,8 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      Do you have insurance through your job or a government
-                      program like VA or Medicaid?
+                      ¿Tienes seguro a través de tu trabajo o un programa
+                      gubernamental como VA o Medicaid?
                     </p>
                   </div>
 
@@ -591,7 +646,7 @@
                         data-form-step="4"
                         data-form-value="Yes"
                       >
-                        Yes
+                        Sí
                       </button>
                       <button
                         class="chat-button text-white font-bold bg-blue-500 rounded-full py-3 px-12"
@@ -614,7 +669,7 @@
                   <div
                     class="bg-blue-500 text-white p-3 rounded-lg shadow-xs mt-2 inline-block"
                   >
-                    <p id="msg_yes_insurance" class="text-md hidden">Yes</p>
+                    <p id="msg_yes_insurance" class="text-md hidden">Sí</p>
                     <p id="msg_no_insurance" class="text-md hidden">No</p>
                   </div>
                 </div>
@@ -649,7 +704,7 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      ¡Usted está precalificado para el Beneficio de Reembolso!
+                      ¡Estás precalificado para el Beneficio de Reembolso!
                     </p>
                   </div>
                   <div
@@ -657,10 +712,10 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      Toque el número de abajo para llamar ahora y obtener su
-                      Beneficio de Reembolso del Seguro Social. ¡Solo toma 2
-                      minutos! Asegúrese de mencionar al agente que está
-                      llamando por el beneficio de reembolso de la Parte B.
+                      Toca el número a continuación para llamar ahora y obtener
+                      tu Beneficio de Reembolso del Seguro Social. ¡Solo toma 2
+                      minutos! Asegúrate de mencionar al agente que estás
+                      llamando sobre el beneficio de Reembolso de la Parte B.
                     </p>
                   </div>
                   <div
@@ -668,8 +723,8 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      Tap the button below to get your Part B Giveback! It only
-                      takes 2 minutes.
+                      Toca el botón a continuación para obtener tu Reembolso de
+                      la Parte B. ¡Solo toma 2 minutos!
                     </p>
                   </div>
 
@@ -700,7 +755,7 @@
                     class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2 w-fit hidden"
                   >
                     <p class="text-md text-gray-800">
-                      Lo sentimos, parece que no califica para esta oferta.
+                      Lo sentimos, parece que no calificas para esta oferta
                     </p>
                   </div>
                   <div
@@ -757,7 +812,7 @@
                           text-align: center;
                         "
                       >
-                        <span style="font-size: 1.07rem">CLAIM NOW</span>
+                        <span style="font-size: 1.07rem">RECLAMAR AHORA</span>
                       </a>
                     </p>
                   </div>
@@ -771,11 +826,11 @@
               >
                 <div class="bg-gray-200 p-3 rounded-lg shadow-xs mt-2">
                   <h3 class="text-lg font-bold text-gray-800 mb-2">
-                    Compare Medicare Plans
+                    Comparar Planes de Medicare
                   </h3>
                   <p class="text-md text-gray-800 mb-3">
-                    Select a carrier below to compare plans and get your
-                    benefits:
+                    Selecciona una aseguradora a continuación para comparar
+                    planes y obtener tus beneficios:
                   </p>
 
                   <!-- Loading Spinner -->
@@ -795,7 +850,7 @@
                       "
                     ></div>
                     <p style="margin-top: 15px; color: #666; font-size: 14px">
-                      Loading insurance options...
+                      Cargando opciones de seguro...
                     </p>
                   </div>
 
@@ -823,10 +878,10 @@
                     "
                   >
                     <p style="font-size: 16px; font-weight: bold">
-                      Unable to load insurance options
+                      No se pueden cargar las opciones de seguro
                     </p>
                     <p style="margin-top: 10px; font-size: 14px">
-                      Please refresh the page or contact support.
+                      Por favor, actualiza la página o contacta con soporte.
                     </p>
                   </div>
                 </div>
@@ -836,7 +891,7 @@
                 <div class="relative flex py-5 items-center">
                   <div class="flex-grow border-t border-gray-200"></div>
                   <span class="flex-shrink mx-4 text-gray-300 text-xs"
-                    >Chat Closed</span
+                    >Chat Cerrado</span
                   >
                   <div class="flex-grow border-t border-gray-200"></div>
                 </div>
@@ -850,7 +905,7 @@
     <!-- Non-dismissible Disqualification Modal -->
     <div id="disqualification-modal">
       <div class="modal-content">
-        <h2>Lo sentimos, parece que no califica para esta oferta.</h2>
+        <h2>Lo sentimos, no calificas para esta oferta</h2>
       </div>
     </div>
 
@@ -859,21 +914,21 @@
         class="mx-auto max-w-7xl overflow-hidden px-6 py-8 lg:px-8 text-sm sm:text-md leading-5 sm:leading-6 text-gray-500"
       >
         <p style="text-align: center">
-          Este sitio no forma parte del sitio web de Google ni de Google LLC.
+          Este sitio no es parte del sitio web de Google ni de Google LLC.
           Además, este sitio NO está respaldado por Google de ninguna manera.
-          “Google” es una marca comercial de Google LLC.
+          'Google' es una marca comercial de Google LLC.
         </p>
         <p style="text-align: center; margin-top: 15px">
-          Este sitio web no está afiliado ni respaldado por ninguna agencia
-          gubernamental. Nuestra misión es ayudarle a tomar decisiones
-          informadas y con confianza sobre sus opciones de planes Medicare
+          *Este sitio web no está afiliado ni respaldado por ninguna agencia
+          gubernamental. Nuestra misión es ayudarte a tomar decisiones
+          informadas y confiadas sobre tus opciones de planes de Medicare
           Advantage. Somos un recurso educativo independiente y no somos una
           agencia gubernamental, ni estamos afiliados ni respaldados por el
-          gobierno de los Estados Unidos ni por el programa federal de Medicare.
-          No emitimos ni facilitamos documentos o servicios oficiales del
-          gobierno. En su lugar, lo conectamos con agentes de seguros con
-          licencia que pueden revisar las opciones de planes disponibles en su
-          área. Para información oficial sobre Medicare, visite los Centros de
+          gobierno de los Estados Unidos o el programa federal de Medicare. No
+          emitimos ni facilitamos documentos o servicios gubernamentales
+          oficiales. En su lugar, te conectamos con agentes de seguros
+          licenciados que pueden revisar las opciones de planes disponibles en
+          tu área. Para información oficial de Medicare, visita los Centros de
           Servicios de Medicare y Medicaid (CMS).
         </p>
         <div
@@ -885,12 +940,12 @@
             padding: 15px;
           "
         >
-          <p>2026. Todos los derechos reservados.</p>
+          <p>@2026. Todos los derechos reservados.</p>
           <p class="text-center text-blue-400">
             <span>
               <a href="/privacy" target="_blank">Política de Privacidad</a> |
-              <a href="/terms" target="_blank">Términos &amp; Condiciones</a> |
-              <a href="/contact" target="_blank">Contáctenos</a>
+              <a href="/terms" target="_blank">Términos y Condiciones</a> |
+              <a href="/contact" target="_blank">Contáctanos</a>
             </span>
           </p>
         </div>
@@ -915,17 +970,7 @@
             const data = await response.json();
 
             if (data.success && data.phone_number) {
-              // TESTING - Log phoneNumber
-              console.log(
-                "TESTING - phoneNumber loaded from API:",
-                data.phone_number
-              );
-              if (data.debug) {
-                console.log(
-                  "TESTING - Debug info from number.php:",
-                  data.debug
-                );
-              }
+              console.log("phoneNumber from API:", data.phone_number);
 
               // Update the anchor tag href
               const phoneElement = document.getElementById("phone-number");
@@ -940,8 +985,6 @@
                 phoneTextElement.textContent = data.formatted_number;
               }
             }
-          } else {
-            console.error("Failed to fetch phone number:", response.status);
           }
         } catch (error) {
           console.error("Error fetching phone number:", error);
